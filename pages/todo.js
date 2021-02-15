@@ -1,23 +1,32 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import Link from 'next/link'
 import styles from '../styles/Todo.module.css'
  
-const Todo = () => {
+const Todo = ( {avatar_url, login}) => {
  
-   const [tasks, setTasks] = useState([
-       { id: 1, name: 'Do homework' },
-       { id: 2, name: 'Read book' }])
+   const [fname, setStden] = useState([])
+       // { id: 1, name: 'Do homework' },
+       // { id: 2, name: 'Read book' }])
  
    const [name, setName] = useState('')
  
    const [idEdit, setIdEdit] = useState(0)
  
-   const renderTasks = () => {
-       if (tasks !== null)
-           return tasks.map((task, index) => (
+   useEffect( async () => {
+       let ts = await getStden();
+       
+       console.log(ts)
+       setStden(ts) 
+   }, [] )
+ 
+ 
+   const renderStden = () => {
+       if (fname && fname.length)
+           return fname.map((cat, index) => (
                <li key={index} className={styles.listItem}>
-                   {index+1})
-                   {(idEdit !== task.id) ?
-                       task.name :
+                   {cat.id})
+                   {(idEdit !== cat.id) ?
+                       cat.name :
                        (<input
                            className={styles.text}
                            type="text"
@@ -29,73 +38,101 @@ const Todo = () => {
                    <div className={styles.buttonContainer}>
                        <button
                            className={`${styles.button} ${styles.btnEdit}`}
-                           onClick={() => editTask(task.id)}>
+                           onClick={() => editCat(cat.id)}>
                            Edit
                        </button>
                        <button
                            className={`${styles.button} ${styles.btnDelete}`}
-                           onClick={() => deleteTask(task.id)}>
+                           onClick={() => deleteCat(cat.id)}>
                            Delete
                        </button>
                    </div>
                </li>))
    }
+   
  
- 
-   const editTask = (id) => {
+   const editCat = (id) => {
        setIdEdit(id)
-       let t = tasks.find((task) => +task.id === +id)
+       let t = fname.find((cat) => +cat.id === +id)
        setName(t.name)
        if (+idEdit === +id) { //Press Edit again
-           let newTasks = tasks.map((task, index) => {
-               if (+task.id === +id)
-                   tasks[index].name = name
-               return task
+           let newStden = fname.map((cat, index) => {
+               if (+cat.id === +id)
+                   fname[index].name = name
+               return cat
            })
-           setTasks(newTasks)
+           setStden(newStden)
            setIdEdit(0)
        }
    }
  
-   const deleteTask = (id) => {
+   const deleteCat = (id) => {
        console.log('delete id: ', id)
-       let newTasks = tasks.filter((task) => task.id !== +id)
-       setTasks(newTasks)
+       let newStden = fname.filter((cat) => cat.id !== +id)
+       setStden(newStden)
    }
  
-   const addTask = (name) => {
-      if(name.length !== '' && name.length !== 0){
-       if(tasks.length === 10){
-           setIdEdit(0)
-       }
-       else{
-            setTasks([...tasks, { id: tasks[tasks.length - 1].id + 1, name }])
-       }
-       console.log(tasks)
+   const addCat = (name) => {
+       setStden([...fname, { id: fname[fname.length - 1].id + 1, name }])
+       console.log(fname)
    }
-}
  
    return (
        <div className={styles.container}>
-           <h1 className={styles.title}>Todo</h1>
+           <div className={styles.topRight}>
+                <Link href="/"><a>Home</a></Link>
+           </div>
+           <h1 className={styles.title}>
+ 
+               <img src={avatar_url} width="80" />
+            Todo test <span>{login} </span>
+              
+           </h1>
  
            <div className="addContainer">
                <input
                    className={styles.text}
                    type="text"
-                   name="addTask"
+                   name="addCat"
                    onChange={(e) => (setName(e.target.value))}
                />
-             
                <button
                    className={`${styles.button} ${styles.btnAdd}`}
-                   onClick={() => addTask(name)}>Add</button>
+                   onClick={() => addCat(name)}>Add</button>
+                   
+                   
+           </div>
+           <div className="addContainer">
+               <input
+                   className={styles.text}
+                   type="text"
+                   name="addCat"
+                   onChange={(e) => (setName(e.target.value))}
+               />
+               <button
+                   className={`${styles.button} ${styles.btnAdd}`}
+                   onClick={() => addCat(name)}>Add</button>
+                   
+                   
            </div>
            <ul className={styles.list}>
-               {renderTasks()}
+               {renderStden()}
            </ul>
        </div>
    )
+}
+ 
+const getStden = async () => {
+   const res = await fetch('http://localhost:8000/')
+   const json = await res.json()
+   console.log(json)
+   return json;
+}
+ 
+Todo.getInitialProps = async (ctx) => {
+   const res = await fetch('https://api.github.com/users/wwarodom')
+   const json = await res.json()
+   return { login: json.login, avatar_url: json.avatar_url }
 }
  
 export default Todo
